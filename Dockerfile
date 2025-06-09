@@ -3,7 +3,7 @@
 ARG PLATFORM
 FROM lncm/berkeleydb:db-4.8.30.NC-${PLATFORM} AS berkeleydb
 
-# Build stage for Bitcoin Core
+# Build stage for Bitcoin Core!
 
 FROM alpine:3.21 AS bitcoin-core
 
