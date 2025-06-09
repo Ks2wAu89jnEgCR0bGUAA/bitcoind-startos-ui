@@ -2,15 +2,29 @@ from flask import Flask, jsonify, render_template
 import requests
 import time
 import os
+import yaml
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
-# Environment-based RPC configuration
-RPC_USER = 'config.user'
-RPC_PASS = 'config.password'
-RPC_PORT = 8332
-RPC_HOST = 'bitcoind.embassy'
-RPC_URL = f'http://{RPC_HOST}:{RPC_PORT}/'
+# Load Start9 RPC credentials from the config file
+def load_rpc_credentials():
+    config_path = "/data/start9/config.yaml"
+    if not os.path.exists(config_path):
+        raise FileNotFoundError("Start9 config not found at /data/start9/config.yaml")
+
+    with open(config_path, "r") as f:
+        cfg = yaml.safe_load(f)
+
+    rpc_user = cfg.get("user", "")
+    rpc_password = cfg.get("password", "")
+    rpc_host = "bitcoind.embassy"
+    rpc_port = 8332
+
+    url = f"http://{rpc_host}:{rpc_port}"
+    return url, rpc_user, rpc_password
+
+# Load the RPC config once at startup
+RPC_URL, RPC_USER, RPC_PASS = load_rpc_credentials()
 
 def rpc(method, params=[]):
     """Make a raw RPC call to bitcoind"""
