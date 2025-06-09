@@ -97,8 +97,8 @@ RUN chmod a+x /usr/local/bin/bitcoind-manager \
 # 🟡 Add Python Flask Dashboard
 # -------------------------------
 COPY ./bitcoin-stats.py /opt/app/bitcoin-stats.py
-COPY ./templates /opt/app/templates
-COPY ./static /opt/app/static
+COPY ./index.html /opt/app/templates
+COPY ./bitcoin.png /opt/app/static
 
 WORKDIR /opt/app
 
