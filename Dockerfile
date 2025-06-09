@@ -1,13 +1,12 @@
-
+# Stage 1: Build Berkeley DB
 ARG PLATFORM
 FROM lncm/berkeleydb:db-4.8.30.NC-${PLATFORM} AS berkeleydb
 
-
+# Stage 2: Build Bitcoin Core
 FROM alpine:3.21 AS bitcoin-core
 
 COPY --from=berkeleydb /opt /opt
 
-# Install Bitcoin Core build dependencies
 RUN sed -i 's/http:\/\/dl-cdn.alpinelinux.org/https:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories && \
   apk --no-cache add \
     autoconf \
@@ -23,11 +22,9 @@ RUN sed -i 's/http:\/\/dl-cdn.alpinelinux.org/https:\/\/alpine.global.ssl.fastly
     sqlite-dev \
     zeromq-dev
 
-# Copy Bitcoin Core source
 ADD ./bitcoin /bitcoin
 WORKDIR /bitcoin
 
-# Configure and build Bitcoin Core
 ENV BITCOIN_PREFIX=/opt/bitcoin
 
 RUN ./autogen.sh
@@ -49,16 +46,15 @@ RUN ./configure \
 
 RUN make -j$(nproc) && make install && strip ${BITCOIN_PREFIX}/bin/*
 
-# --- 🧩 Stage 3: Final runtime image ---
+# Stage 3: Runtime image
 FROM alpine:3.21
 
-# Metadata
 LABEL maintainer.0="João Fonseca (@joaopaulofonseca)" \
       maintainer.1="Pedro Branco (@pedrobranco)" \
       maintainer.2="Rui Marinho (@ruimarinho)" \
       maintainer.3="Aiden McClelland (@dr-bonez)"
 
-# Install runtime deps: Bitcoin, Python3, Flask, etc.
+# Runtime dependencies
 RUN sed -i 's/http:\/\/dl-cdn.alpinelinux.org/https:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories && \
   apk --no-cache add \
     bash \
@@ -72,18 +68,18 @@ RUN sed -i 's/http:\/\/dl-cdn.alpinelinux.org/https:\/\/alpine.global.ssl.fastly
     py3-pip \
     py3-requests \
     py3-flask \
-    py3-yaml
+    py3-yaml  # ✅ Required to parse config.yaml for RPC credentials
 
-# Environment setup
+# Environment
 ARG ARCH
 ENV BITCOIN_DATA=/root/.bitcoin
 ENV BITCOIN_PREFIX=/opt/bitcoin
 ENV PATH=${BITCOIN_PREFIX}/bin:$PATH
 
-# Copy Bitcoin Core binaries from builder
+# Copy Bitcoin Core binaries
 COPY --from=bitcoin-core /opt /opt
 
-# Copy bitcoind-manager and entry scripts
+# Copy scripts
 COPY ./manager/target/${ARCH}-unknown-linux-musl/release/bitcoind-manager \
      ./docker_entrypoint.sh \
      ./actions/reindex.sh \
@@ -102,8 +98,6 @@ COPY ./bitcoin.png /opt/app/static/bitcoin.png
 
 WORKDIR /opt/app
 
-# Expose ports: RPC, P2P, and Flask dashboard
 EXPOSE 8332 8333 5006
 
-# Start everything via entrypoint
 ENTRYPOINT ["/usr/local/bin/docker_entrypoint.sh"]
