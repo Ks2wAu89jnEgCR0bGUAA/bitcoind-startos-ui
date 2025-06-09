@@ -35,8 +35,6 @@ WORKDIR /bitcoin
 
 RUN ./autogen.sh
 RUN ./configure LDFLAGS=-L`ls -d /opt/db*`/lib/ CPPFLAGS=-I`ls -d /opt/db*`/include/ \
-  # If building on Mac make sure to increase Docker VM memory, or uncomment this line. See https://github.com/bitcoin/bitcoin/issues/6658 for more info.
-  # CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768" \
   CXXFLAGS="-O1" \
   CXX=clang++ CC=clang \
   --prefix=${BITCOIN_PREFIX} \
@@ -53,7 +51,7 @@ RUN make -j$(nproc)
 RUN make install
 RUN strip ${BITCOIN_PREFIX}/bin/*
 
-# Build stage for compiled artifacts
+# Final image
 FROM alpine:3.21
 
 LABEL maintainer.0="João Fonseca (@joaopaulofonseca)" \
@@ -69,7 +67,11 @@ RUN apk --no-cache add \
   libzmq \
   sqlite-dev \
   tini \
-  yq
+  yq \
+  python3 \
+  py3-pip \
+  py3-requests
+
 RUN rm -rf /var/cache/apk/*
 
 ARG ARCH
@@ -79,6 +81,7 @@ ENV BITCOIN_PREFIX=/opt/bitcoin
 ENV PATH=${BITCOIN_PREFIX}/bin:$PATH
 
 COPY --from=bitcoin-core /opt /opt
+
 COPY ./manager/target/${ARCH}-unknown-linux-musl/release/bitcoind-manager \
      ./docker_entrypoint.sh \
      ./actions/reindex.sh \
@@ -90,6 +93,20 @@ COPY ./manager/target/${ARCH}-unknown-linux-musl/release/bitcoind-manager \
 RUN chmod a+x /usr/local/bin/bitcoind-manager \
     /usr/local/bin/*.sh
 
-EXPOSE 8332 8333
+# -------------------------------
+# 🟡 Add Python Flask Dashboard
+# -------------------------------
+COPY ./bitcoin-stats.py /opt/app/bitcoin-stats.py
+COPY ./templates /opt/app/templates
+COPY ./static /opt/app/static
 
-ENTRYPOINT ["/usr/local/bin/docker_entrypoint.sh"]
+WORKDIR /opt/app
+
+RUN pip3 install Flask requests
+
+EXPOSE 8332 8333 5006
+
+# -------------------------------
+# 🟢 Run bitcoind-manager and Flask
+# -------------------------------
+CMD bitcoind-manager & python3 /opt/app/bitcoin-stats.py
