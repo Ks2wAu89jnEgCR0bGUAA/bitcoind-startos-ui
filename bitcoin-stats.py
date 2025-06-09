@@ -6,17 +6,17 @@ import yaml
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
-# Load Start9 RPC credentials from the config file
+#Load Start9 RPC credentials from the correct config path and keys
 def load_rpc_credentials():
-    config_path = "/data/start9/config.yaml"
+    config_path = "/root/.bitcoin/start9/config.yaml"  # 🛠 Corrected file path
     if not os.path.exists(config_path):
-        raise FileNotFoundError("Start9 config not found at /data/start9/config.yaml")
+        raise FileNotFoundError("Start9 config not found at /root/.bitcoin/start9/config.yaml")
 
     with open(config_path, "r") as f:
         cfg = yaml.safe_load(f)
 
-    rpc_user = cfg.get("user", "")
-    rpc_password = cfg.get("password", "")
+    rpc_user = cfg.get("rpc", {}).get("username", "")  # 🛠 Fixed nested YAML keys
+    rpc_password = cfg.get("rpc", {}).get("password", "")  # 🛠 Same as above
     rpc_host = "bitcoind.embassy"
     rpc_port = 8332
 
