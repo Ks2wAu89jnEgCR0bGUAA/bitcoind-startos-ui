@@ -74,7 +74,7 @@ RUN apk --no-cache add \
   py3-requests
 
 # Python requirements
-RUN pip3 install Flask requests
+RUN pip3 install Flask requests pyyaml
 
 # Environment + paths
 ARG ARCH
