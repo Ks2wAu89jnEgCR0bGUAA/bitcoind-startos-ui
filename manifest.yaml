@@ -27,6 +27,10 @@ main:
     compat: /mnt/assets
   sigterm-timeout: 5m
 health-checks:
+  web-ui:
+    name: Bitcoin Core Monitoring Interface
+    success-message: Ready to be visited in a web browser
+    type: script
   rpc:
     name: RPC
     success-message: The RPC server is ready for connections
@@ -66,6 +70,20 @@ alerts:
   uninstall: Uninstalling Bitcoin Core will result in permanent loss of data. Without a backup, any funds stored on your node's default hot wallet will be lost forever. If you are unsure, we recommend making a backup, just to be safe.
   restore: Restoring Bitcoin Core will overwrite its current data. You will lose any transactions recorded in watch-only wallets, and any funds you have received to the hot wallet, since the last backup.
 interfaces:
+  main:
+    name: Monitoring Interface
+    description: Bitcoin Core Monitoring interface
+    tor-config:
+      port-mapping:
+        80: "5006"
+    lan-config:
+      443:
+        ssl: true
+        internal: 5006
+    ui: true
+    protocols:
+      - tcp
+      - http
   rpc:
     name: RPC Interface
     description: Listens for JSON-RPC commands
