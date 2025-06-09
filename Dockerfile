@@ -1,31 +1,30 @@
 # From https://github.com/ruimarinho/docker-bitcoin-core
 
-# Build stage for BerkeleyDB
 ARG PLATFORM
-
 FROM lncm/berkeleydb:db-4.8.30.NC-${PLATFORM} AS berkeleydb
 
 # Build stage for Bitcoin Core
+
 FROM alpine:3.21 AS bitcoin-core
 
 COPY --from=berkeleydb /opt /opt
 
-RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
+RUN sed -i 's/http:\/\/dl-cdn.alpinelinux.org/https:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
 RUN apk --no-cache add \
-        autoconf \
-        automake \
-        boost-dev \
-        build-base \
-        clang \
-        chrpath \
-        file \
-        gnupg \
-        libevent-dev \
-        libressl \
-        libtool \
-        linux-headers \
-        sqlite-dev \
-        zeromq-dev
+    autoconf \
+    automake \
+    boost-dev \
+    build-base \
+    clang \
+    chrpath \
+    file \
+    gnupg \
+    libevent-dev \
+    libressl \
+    libtool \
+    linux-headers \
+    sqlite-dev \
+    zeromq-dev
 
 ADD ./bitcoin /bitcoin
 
@@ -51,15 +50,17 @@ RUN make -j$(nproc)
 RUN make install
 RUN strip ${BITCOIN_PREFIX}/bin/*
 
+
 # Final image
+
 FROM alpine:3.21
 
 LABEL maintainer.0="João Fonseca (@joaopaulofonseca)" \
-  maintainer.1="Pedro Branco (@pedrobranco)" \
-  maintainer.2="Rui Marinho (@ruimarinho)" \
-  maintainer.3="Aiden McClelland (@dr-bonez)"
+      maintainer.1="Pedro Branco (@pedrobranco)" \
+      maintainer.2="Rui Marinho (@ruimarinho)" \
+      maintainer.3="Aiden McClelland (@dr-bonez)"
 
-RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
+RUN sed -i 's/http:\/\/dl-cdn.alpinelinux.org/https:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
 RUN apk --no-cache add \
   bash \
   curl \
@@ -72,16 +73,19 @@ RUN apk --no-cache add \
   py3-pip \
   py3-requests
 
-RUN rm -rf /var/cache/apk/*
+# Python requirements
+RUN pip3 install Flask requests
 
+# Environment + paths
 ARG ARCH
-
 ENV BITCOIN_DATA=/root/.bitcoin
 ENV BITCOIN_PREFIX=/opt/bitcoin
 ENV PATH=${BITCOIN_PREFIX}/bin:$PATH
 
+# Copy bitcoin core
 COPY --from=bitcoin-core /opt /opt
 
+# Manager + entry scripts
 COPY ./manager/target/${ARCH}-unknown-linux-musl/release/bitcoind-manager \
      ./docker_entrypoint.sh \
      ./actions/reindex.sh \
@@ -90,23 +94,22 @@ COPY ./manager/target/${ARCH}-unknown-linux-musl/release/bitcoind-manager \
      ./check-synced.sh \
      /usr/local/bin/
 
-RUN chmod a+x /usr/local/bin/bitcoind-manager \
+RUN chmod +x /usr/local/bin/bitcoind-manager \
     /usr/local/bin/*.sh
 
-# -------------------------------
-# 🟡 Add Python Flask Dashboard
-# -------------------------------
+
+# Add Python Flask App
+
 COPY ./bitcoin-stats.py /opt/app/bitcoin-stats.py
-COPY ./index.html /opt/app/templates
-COPY ./bitcoin.png /opt/app/static
+COPY ./index.html /opt/app/templates/index.html
+COPY ./bitcoin.png /opt/app/static/bitcoin.png
 
 WORKDIR /opt/app
 
-RUN pip3 install Flask requests
-
+# Flask app runs on port 5006
 EXPOSE 8332 8333 5006
 
-# -------------------------------
-# 🟢 Run bitcoind-manager and Flask
-# -------------------------------
-CMD bitcoind-manager & python3 /opt/app/bitcoin-stats.py
+
+# Entrypoint
+
+ENTRYPOINT ["/usr/local/bin/docker_entrypoint.sh"]
