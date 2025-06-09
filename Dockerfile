@@ -11,6 +11,9 @@ COPY --from=berkeleydb /opt /opt
 
 RUN sed -i 's/http:\/\/dl-cdn.alpinelinux.org/https:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
 RUN apk --no-cache add \
+  py3-flask \
+  py3-requests \
+  py3-yaml
   bash \
   curl \
   libevent \
@@ -73,8 +76,6 @@ RUN apk --no-cache add \
   py3-pip \
   py3-requests
 
-# Python requirements
-RUN pip3 install Flask requests pyyaml
 
 # Environment + paths
 ARG ARCH
