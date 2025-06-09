@@ -11,20 +11,20 @@ COPY --from=berkeleydb /opt /opt
 
 RUN sed -i 's/http:\/\/dl-cdn.alpinelinux.org/https:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
 RUN apk --no-cache add \
-    autoconf \
-    automake \
-    boost-dev \
-    build-base \
-    clang \
-    chrpath \
-    file \
-    gnupg \
-    libevent-dev \
-    libressl \
-    libtool \
-    linux-headers \
-    sqlite-dev \
-    zeromq-dev
+  bash \
+  curl \
+  libevent \
+  libzmq \
+  sqlite-dev \
+  tini \
+  yq \
+  python3 \
+  py3-pip \
+  gcc \
+  musl-dev \
+  libffi-dev \
+  openssl-dev \
+  python3-dev
 
 ADD ./bitcoin /bitcoin
 
