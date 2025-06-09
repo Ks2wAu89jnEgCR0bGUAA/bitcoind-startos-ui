@@ -13,7 +13,7 @@ RUN sed -i 's/http:\/\/dl-cdn.alpinelinux.org/https:\/\/alpine.global.ssl.fastly
 RUN apk --no-cache add \
   py3-flask \
   py3-requests \
-  py3-yaml
+  py3-yaml \
   bash \
   curl \
   libevent \
@@ -28,6 +28,7 @@ RUN apk --no-cache add \
   libffi-dev \
   openssl-dev \
   python3-dev
+
 
 ADD ./bitcoin /bitcoin
 
