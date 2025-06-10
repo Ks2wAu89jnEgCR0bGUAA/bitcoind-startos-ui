@@ -28,7 +28,7 @@ main:
   sigterm-timeout: 5m
 health-checks:
   web-ui:
-    name: Bitcoin Core Monitoring Interface
+    name: Bitcoin Core Stats Page
     success-message: Ready to be visited in a web browser
     type: script
   rpc:
@@ -71,8 +71,8 @@ alerts:
   restore: Restoring Bitcoin Core will overwrite its current data. You will lose any transactions recorded in watch-only wallets, and any funds you have received to the hot wallet, since the last backup.
 interfaces:
   main:
-    name: Monitoring Interface
-    description: Bitcoin Core Monitoring interface
+    name: Stats Page
+    description: Bitcoin Core Stats Page
     tor-config:
       port-mapping:
         80: "5006"
