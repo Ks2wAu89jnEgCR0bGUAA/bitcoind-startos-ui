@@ -27,8 +27,7 @@ x86:
 	@rm -f docker-images/aarch64.tar
 	@ARCH=x86_64 $(MAKE) -s
 
-$(PKG_ID).s9pk: manifest.yaml assets/compat/* docker-images/aarch64.tar docker-images/x86_64.tar instructions.md scripts/embassy.js scripts/services
-/healthChecks.ts
+$(PKG_ID).s9pk: manifest.yaml assets/compat/* docker-images/aarch64.tar docker-images/x86_64.tar instructions.md scripts/embassy.js scripts/services/healthChecks.ts
 ifeq ($(ARCH),aarch64)
 	@echo "start-sdk: Preparing aarch64 package ..."
 else ifeq ($(ARCH),x86_64)
