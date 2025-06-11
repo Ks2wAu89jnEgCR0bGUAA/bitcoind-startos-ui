@@ -3,6 +3,11 @@
 </p>
 
 # Bitcoin Core for StartOS
+![healthcheck](https://github.com/user-attachments/assets/01bcb97f-81e5-4792-8051-4eb58fd5cf21)
+![Start9-test](https://github.com/user-attachments/assets/ffedcb3b-f3cd-4902-bda1-ebcce2ec6d40)
+
+
+
 
 This project packages [Bitcoin](https://bitcoin.org) for StartOS. Bitcoin uses peer-to-peer technology to operate with no central authority or banks - managing transactions and the issuing of bitcoins is carried out collectively by the network. 
 
